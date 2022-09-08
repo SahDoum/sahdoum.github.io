@@ -1,5 +1,5 @@
 
-<img align="right" width="400" height="300" src="photo.jpg" Hspace="10" Vspace="10">
+<img align="right" width="400" height="auto" src="photo.jpg" Hspace="10" Vspace="10">
 
 
 # Обо мне 
