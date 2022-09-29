@@ -61,8 +61,8 @@
 # <a href="/olympiads/">Олимпиады</a>
 Собранные дипломчики о победах в разнообразных олимпиадах!
 
-# [Контакты](contacts)
+# Контакты
 
-<img style="fill:#26A5E4; width:1em; height:1em;" src="htelegram.svg" /> **Telegram:** <a href="t.me/AChekhonte">@AChekhonte</a>
+<img style="fill:#26A5E4; width:1em; height:1em;" src="telegram.svg" /> **Telegram:** <a href="t.me/AChekhonte">@AChekhonte</a>
 
 <img style="fill:#EA4335;width:1em; height:1em;" src="gmail.svg" /> **Mail:** sahdoum@gmail.com
