@@ -66,5 +66,6 @@
 <img style="fill:#26A5E4; width:1em; height:1em;" src="telegram.svg" /> **Telegram:** <a href="https://t.me/AChekhonte">@AChekhonte</a>
 
 <img style="fill:#EA4335;width:1em; height:1em;" src="gmail.svg" /> **Mail:** sahdoum@gmail.com
+
 <img style="fill:#EA4335;width:1em; height:1em;" src="whatsapp.svg" /> **WhatsApp:** <a href="https://wa.me/qr/YN4UCIYNJ2ZCO1">Написать</a>
 
