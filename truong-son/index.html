@@ -1,0 +1,1000 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Труонгшон: коммуны, этносы и традиции</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Leaflet CSS & JS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+
+  <!-- Google Fonts: Inter & Noto Serif -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Serif:ital,wght@0,600;0,700;1,400&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background-color: #0f172a;
+    }
+    .font-serif-title {
+      font-family: 'Noto Serif', serif;
+    }
+    #map {
+      width: 100vw;
+      height: 100vh;
+      z-index: 1;
+    }
+    /* Custom scrollbar for sidebar */
+    .custom-scroll::-webkit-scrollbar {
+      width: 5px;
+    }
+    .custom-scroll::-webkit-scrollbar-track {
+      background: rgba(15, 23, 42, 0.4);
+    }
+    .custom-scroll::-webkit-scrollbar-thumb {
+      background: #475569;
+      border-radius: 9999px;
+    }
+    .custom-scroll::-webkit-scrollbar-thumb:hover {
+      background: #64748b;
+    }
+    /* Leaflet popup customization */
+    .leaflet-popup-content-wrapper {
+      background-color: #1e293b;
+      color: #f8fafc;
+      border: 1px solid #334155;
+      border-radius: 0.75rem;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.4);
+      padding: 0;
+    }
+    .leaflet-popup-content {
+      margin: 0;
+      width: 310px !important;
+      max-width: 85vw;
+    }
+    .leaflet-popup-tip {
+      background-color: #1e293b;
+      border: 1px solid #334155;
+    }
+    .leaflet-container a.leaflet-popup-close-button {
+      color: #94a3b8;
+      top: 10px;
+      right: 10px;
+      font-size: 18px;
+    }
+    .leaflet-container a.leaflet-popup-close-button:hover {
+      color: #f8fafc;
+    }
+    /* Permanent map labels styling */
+    .atlas-permanent-label {
+      background-color: rgba(15, 23, 42, 0.88) !important;
+      border: 1px solid rgba(71, 85, 105, 0.85) !important;
+      border-radius: 6px !important;
+      color: #f8fafc !important;
+      font-family: 'Inter', sans-serif !important;
+      font-size: 11px !important;
+      font-weight: 500 !important;
+      padding: 2px 6px !important;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.45) !important;
+      white-space: nowrap !important;
+      pointer-events: none;
+    }
+    .atlas-permanent-label::before {
+      display: none !important;
+    }
+    /* Basemap control styling */
+    .leaflet-control-layers {
+      background-color: rgba(30, 41, 59, 0.92) !important;
+      backdrop-filter: blur(8px);
+      border: 1px solid #334155 !important;
+      border-radius: 0.75rem !important;
+      color: #e2e8f0 !important;
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.4) !important;
+      padding: 6px 10px !important;
+    }
+    .leaflet-control-layers-base label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 3px 0;
+      cursor: pointer;
+      font-size: 13px;
+    }
+    .leaflet-control-zoom a {
+      background-color: rgba(30, 41, 59, 0.92) !important;
+      color: #e2e8f0 !important;
+      border-color: #334155 !important;
+    }
+    .leaflet-control-zoom a:hover {
+      background-color: #334155 !important;
+      color: #fff !important;
+    }
+  
+    .atlas-field{width:100%;background:#1e293b;color:#e2e8f0;border:1px solid #475569;border-radius:7px;padding:7px 8px;font-size:12px;outline:none}
+    .atlas-field:focus{border-color:#e6ae62}
+    .atlas-action{background:#24334b;border:1px solid #475569;border-radius:7px;padding:7px 9px;font-size:11px;color:#e2e8f0;cursor:pointer}
+    .atlas-action:hover{background:#344860}
+    .atlas-micro{font-size:11px;line-height:1.5;color:#94a3b8}
+    .atlas-pill{display:inline-block;border:1px solid #506078;border-radius:5px;padding:2px 6px;margin:2px 3px 2px 0;font-size:11px}
+    .atlas-dot{display:inline-block;width:9px;height:9px;border-radius:100%;vertical-align:middle;margin-right:4px}
+    .atlas-ethnic-pie,.atlas-culture-marker{background:transparent;border:0}
+    .atlas-culture-bubble{background:#0f172a;border:2px solid #eab308;border-radius:15px;width:26px;height:26px;display:flex;align-items:center;justify-content:center;color:#fff;font:700 11px Inter,Arial;box-shadow:0 2px 8px #000a}
+    .atlas-culture-bubble.loss{border-color:#fb7185}.atlas-culture-bubble.decline{border-color:#f59e0b}
+    .atlas-popup{max-height:440px;overflow-y:auto;padding:12px;color:#e2e8f0;line-height:1.55;user-select:text}
+    .atlas-popup h3{color:#fff;font:600 17px 'Noto Serif',serif;margin:0 0 5px}
+    .atlas-popup h4{color:#f9d391;font:600 12px Inter,sans-serif;margin:10px 0 3px}
+    .atlas-popup p{font-size:12px;margin:4px 0}
+    .atlas-popup a{color:#93c5fd;text-decoration:underline;word-break:break-word}
+    .atlas-popup .ev{border-top:1px solid #334155;padding:7px 0}
+    .atlas-status{display:inline-block;font-size:10px;border:1px solid #64748b;border-radius:5px;padding:1px 5px;margin:2px 3px 2px 0}
+    .atlas-status.discontinued{color:#fecdd3;border-color:#be123c}
+    .atlas-status.declining{color:#fcd34d;border-color:#b45309}
+    .atlas-status.maintained{color:#bbf7d0;border-color:#15803d}
+    .atlas-small-line{color:#94a3b8;font-size:11px}
+    .atlas-listitem{padding:7px;border-bottom:1px solid #253247;cursor:pointer;font-size:11px}
+    .atlas-listitem:hover{background:#24334b}
+    
+  </style>
+</head>
+<body class="text-slate-100 select-none">
+
+  <!-- Mobile / Collapsed Sidebar Toggle Button -->
+  <button id="toggleSidebarBtn" title="Открыть/свернуть панель атласа"
+    class="fixed top-3 left-3 z-[1001] flex items-center gap-2 bg-slate-900/95 hover:bg-slate-800 text-amber-400 border border-slate-700/80 px-3.5 py-2.5 rounded-xl shadow-xl backdrop-blur-md transition-all cursor-pointer">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+    </svg>
+    <span class="text-xs font-semibold tracking-wide uppercase text-slate-200">Атлас</span>
+  </button>
+
+  <!-- Left Control Sidebar -->
+  <aside id="sidebar"
+    class="fixed top-0 left-0 z-[1000] h-screen w-full sm:w-96 bg-slate-900/95 backdrop-blur-xl border-r border-slate-700/80 shadow-2xl overflow-y-auto custom-scroll transition-transform duration-300 ease-in-out translate-x-0">
+    
+    <!-- Header -->
+    <div class="p-4 pt-14 sm:pt-4 sm:pl-32 border-b border-slate-800 bg-slate-950/50">
+      <div class="flex items-center justify-between gap-2">
+        <span id="atlasVersionBadge" class="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium bg-amber-500/15 text-amber-300 border border-amber-500/30 truncate">
+          v0.2.0-draft • OGC:CRS84
+        </span>
+        <button id="infoModalBtn" class="text-xs text-slate-400 hover:text-amber-300 underline decoration-dotted cursor-pointer shrink-0">
+          О точности геометрии
+        </button>
+      </div>
+      <h1 id="atlasTitle" class="font-serif-title text-base font-bold text-slate-100 leading-snug mt-2">
+        Труонгшон: коммуны, этносы и традиции
+      </h1>
+
+      <!-- File Import & Reset Bar -->
+      <div class="mt-3 pt-2.5 border-t border-slate-800/80 flex items-center gap-2">
+        <input type="file" id="geojsonFileInput" accept=".geojson,.json,application/geo+json,application/json" class="hidden" />
+        <button id="loadGeojsonBtn" title="Загрузить набор этнографических данных атласа GeoJSON"
+          class="flex-1 flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-amber-300 border border-slate-700 hover:border-amber-500/50 text-xs font-medium transition cursor-pointer">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+          </svg>
+          <span>Загрузить атлас (.geojson)</span>
+        </button>
+        <button id="resetDefaultAtlasBtn" title="Загрузить исходный файл GeoJSON"
+          class="hidden px-2.5 py-1.5 rounded-lg bg-rose-950/60 hover:bg-rose-900/70 text-rose-300 border border-rose-800/70 text-xs font-medium transition cursor-pointer shrink-0">
+          Сброс
+        </button>
+      </div>
+      <div id="fileStatusBanner" class="hidden mt-2 px-2.5 py-1.5 rounded-lg text-[11px] leading-snug"></div>
+    </div>
+
+    <!-- Search & Display Options -->
+    <div class="p-3 border-b border-slate-800 bg-slate-900/70 space-y-2.5">
+      <div class="relative">
+        <input id="searchInput" type="text" placeholder="Поиск по названию (напр. Нгоклинь, Джа-рай, QL19)..."
+          class="w-full bg-slate-800/90 text-sm text-slate-100 placeholder-slate-400 pl-9 pr-8 py-2 rounded-lg border border-slate-700 focus:outline-none focus:border-amber-500/70 transition-colors" />
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-slate-400 absolute left-3 top-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        </svg>
+        <button id="clearSearchBtn" class="hidden absolute right-2.5 top-2 text-slate-400 hover:text-slate-200 cursor-pointer">
+          ✕
+        </button>
+      </div>
+      <!-- Search Results Dropdown -->
+      <div id="searchResults" class="hidden max-h-48 overflow-y-auto custom-scroll bg-slate-800 border border-slate-700 rounded-lg divide-y divide-slate-700/70"></div>
+
+
+      <div id="ethnoControls" class="space-y-2">
+        <label class="text-[11px] font-medium text-amber-300 block" for="ethnicFilter">Фильтр по народности</label>
+        <select class="atlas-field" id="ethnicFilter"><option value="">Все народности</option></select>
+        <div class="grid grid-cols-2 gap-2">
+          <div><label class="text-[11px] text-slate-300 block mb-1" for="evidenceFilter">Этнические данные</label>
+            <select class="atlas-field" id="evidenceFilter"><option value="all">Все уровни</option><option value="commune">Коммунальное подтверждение</option><option value="village">Деревенские свидетельства</option><option value="historical">Только GREG</option><option value="minority_unknown">Меньшинства есть, этнос неизвестен</option></select></div>
+          <div><label class="text-[11px] text-slate-300 block mb-1" for="cultureFilter">Состояние традиций</label>
+            <select class="atlas-field" id="cultureFilter"><option value="">Любое</option><option value="maintained">Сохраняется</option><option value="declining">Угасает</option><option value="discontinued">Прекратилась</option><option value="existing">Здание существует</option><option value="restored">Восстановлена</option></select></div>
+        </div>
+        <div id="ethnicLegend" class="max-h-24 overflow-y-auto custom-scroll flex gap-x-2 gap-y-1 flex-wrap"></div>
+        <details class="atlas-color-panel bg-slate-800/40 border border-slate-700 rounded-lg px-2.5 py-2">
+          <summary class="text-[11px] font-medium text-amber-300 cursor-pointer select-none">Настроить цвета и заливку</summary>
+          <div class="space-y-2 pt-3">
+            <label class="text-[11px] text-slate-300 block" for="atlasColorEthnic">Народность</label>
+            <div class="flex items-center gap-2">
+              <select class="atlas-field flex-1 min-w-0" id="atlasColorEthnic"></select>
+              <input type="color" id="atlasEthnicColor" aria-label="Цвет выбранной народности" title="Цвет народности" class="w-11 h-9 bg-slate-800 border border-slate-600 rounded-md cursor-pointer shrink-0" />
+            </div>
+            <label for="atlasColorMode" class="text-[11px] text-slate-300 block">Окрашивание смешанных коммун</label>
+            <select class="atlas-field" id="atlasColorMode">
+              <option value="stripes">Зебра: полосы всех перечисленных этносов</option>
+              <option value="first">Один цвет: первый перечисленный этнос</option>
+            </select>
+            <div id="atlasStripeWidthRow" class="space-y-1">
+              <div class="flex items-center justify-between gap-3">
+                <label for="atlasStripeWidth" class="text-[11px] text-slate-300">Ширина полосы</label>
+                <output id="atlasStripeWidthValue" class="text-[11px] text-amber-300">10 px</output>
+              </div>
+              <input type="range" id="atlasStripeWidth" min="3" max="24" value="10" step="1" class="w-full accent-amber-500 cursor-pointer" />
+            </div>
+            <div class="flex items-center justify-between gap-3">
+              <label for="atlasPolygonOpacity" class="text-[11px] text-slate-300">Непрозрачность заливки</label>
+              <output id="atlasPolygonOpacityValue" class="text-[11px] text-amber-300">47%</output>
+            </div>
+            <input type="range" id="atlasPolygonOpacity" min="0" max="100" value="47" step="1" class="w-full accent-amber-500 cursor-pointer" />
+            <div class="flex flex-wrap gap-2">
+              <button id="atlasResetColors" type="button" class="atlas-action">Сбросить цвета</button>
+              <button id="atlasExportColors" type="button" class="atlas-action">Палитра JSON ↓</button>
+            </div>
+            <p class="atlas-micro">Цвета, ширина полос и прозрачность сохраняются локально, если браузер разрешает; палитру можно экспортировать в JSON. Зебра показывает только присутствие перечисленных народностей, не их доли.</p>
+          </div>
+        </details>
+        <p class="atlas-micro">Для смешанных коммун каждый перечисленный этнос показан своей диагональной полосой; последовательность повторяется. <b>Ширина полос не означает долю населения.</b></p>
+      </div>
+      <div class="border-t border-slate-700 pt-2 flex flex-wrap gap-2">
+        <button id="downloadEvidence" class="atlas-action" type="button">Данные и источники ↓</button>
+        <button id="downloadPolygons" class="atlas-action" type="button">Коммуны GeoJSON ↓</button>
+        <button id="retryGeoVN" class="atlas-action" type="button">Обновить границы</button>
+        <button id="loadWardGeoBtn" class="atlas-action" type="button">Загрузить границы вручную</button>
+        <input type="file" id="wardGeoFile" accept=".geojson,.json" class="hidden" />
+      </div>
+      <div id="boundaryStatus" class="atlas-micro bg-slate-800/60 border border-slate-700 rounded-lg px-2 py-2">Проверка геометрии коммун…</div>
+    
+      <!-- Global Show Labels Toggle -->
+      <label class="flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-slate-800/60 hover:bg-slate-800 border border-slate-700/70 cursor-pointer transition-colors">
+        <span class="flex items-center gap-2 text-xs font-medium text-slate-200">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-amber-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+          </svg>
+          Показывать подписи на карте
+        </span>
+        <input id="toggleLabelsCheckbox" type="checkbox"
+          class="w-4 h-4 rounded accent-amber-500 cursor-pointer shrink-0" />
+      </label>
+    </div>
+
+    <!-- Scrollable Content -->
+    <div class="p-3 space-y-4">
+      
+      <!-- Layers Section -->
+      <div>
+        <div class="flex items-center justify-between mb-2">
+          <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-400">
+            Тематические слои (<span id="visibleCount">0</span>/<span id="totalGeoCount">0</span>)
+          </h2>
+          <div class="flex gap-1.5">
+            <button id="enableAllLayers" class="text-[11px] px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 cursor-pointer transition">
+              Все
+            </button>
+            <button id="disableAllLayers" class="text-[11px] px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 cursor-pointer transition">
+              Скрыть
+            </button>
+          </div>
+        </div>
+        <div id="layersList" class="space-y-1.5">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+
+      <!-- Geometry Null Section -->
+      <div class="pt-3 border-t border-slate-800">
+        <div class="flex items-center justify-between mb-2">
+          <h2 class="text-xs font-semibold uppercase tracking-wider text-amber-400/90 flex items-center gap-1.5">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+            </svg>
+            Культурные профили и записи без координат (<span id="nullGeoCount">0</span>)
+          </h2>
+          <span class="text-[10px] font-mono text-slate-500">geometry: null</span>
+        </div>
+        <p class="text-[11px] text-slate-400 mb-2 leading-relaxed">
+          Этнографические типовые признаки не подтверждают практику в каждой коммуне. Записи без геометрии сохраняют источники:
+        </p>
+        <div id="nullFeaturesList" class="space-y-2">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Footer Legend Note -->
+    <div class="p-3 border-t border-slate-800 bg-slate-950/70 text-[11px] text-slate-400 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <span class="inline-block w-4 h-3 border border-dashed border-amber-400/80 bg-amber-400/10 rounded-xs"></span>
+        <span>Пунктир = нет коммунального подтверждения</span>
+      </div>
+      <button id="resetViewBtn" class="text-amber-400 hover:text-amber-300 font-medium cursor-pointer">
+        Центр карты
+      </button>
+    </div>
+  </aside>
+
+  <!-- Modal for Metadata & Geometry Policy -->
+  <div id="policyModal" class="fixed inset-0 z-[2000] hidden items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4">
+    <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-lg w-full p-5 shadow-2xl text-slate-200 select-text">
+      <div class="flex items-start justify-between border-b border-slate-800 pb-3">
+        <div>
+          <h3 class="font-serif-title text-lg font-bold text-amber-400">Методологическая справка атласа</h3>
+          <p id="policyModalSubtitle" class="text-xs text-slate-400 mt-0.5">Версия 0.2.0-draft • Система координат OGC:CRS84</p>
+        </div>
+        <button id="closePolicyModal" class="text-slate-400 hover:text-white p-1 cursor-pointer">✕</button>
+      </div>
+      <div class="mt-4 space-y-3 text-sm text-slate-300 leading-relaxed">
+        <div id="geometryPolicyBanner" class="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-200 text-xs">
+          <strong>Политика геометрии:</strong> Приближённые геометрии являются вспомогательным средством визуализации, а не официальными или точными границами.
+        </div>
+        <ul id="geometryNotesList" class="list-disc pl-5 space-y-1.5 text-xs text-slate-300">
+          <!-- Populated from metadata.geometry_notes -->
+        </ul>
+      </div>
+      <div class="mt-5 flex justify-end">
+        <button id="closePolicyModalBtn" class="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-semibold text-xs rounded-lg cursor-pointer transition">
+          Понятно
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal for Null Geometry Feature Details -->
+  <div id="nullDetailModal" class="fixed inset-0 z-[2000] hidden items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4">
+    <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-md w-full p-5 shadow-2xl text-slate-200 select-text">
+      <div id="nullDetailContent"></div>
+      <div class="mt-5 flex justify-end">
+        <button id="closeNullDetailBtn" class="px-4 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-600 text-xs rounded-lg cursor-pointer">
+          Закрыть
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Map Canvas -->
+  <div id="map"></div>
+
+  <script>
+    // Truong Son commune-first atlas logic, Leaflet 1.9.4. No external JS dependencies beyond Leaflet.
+function startAtlas(RAW) {
+  'use strict';
+  const META = RAW.metadata || {};
+  const COMMUNE_RECORDS = RAW.communes || [];
+  const CULTURE = RAW.culture || [];
+  const CATALOGUE = RAW.catalogue || [];
+  const SETTLEMENTS = RAW.settlements || [];
+  const LEGACY = RAW.historical_places || [];
+  const BY_CODE = new Map(COMMUNE_RECORDS.map(f => [String(f.properties.commune_code_2025), f]));
+  const CULTURE_BY_CODE = new Map();
+  for (const f of CULTURE) {
+    const c = String(f.properties?.commune_code_2025 || '');
+    if (c && c !== 'undefined') { if (!CULTURE_BY_CODE.has(c)) CULTURE_BY_CODE.set(c, []); CULTURE_BY_CODE.get(c).push(f); }
+  }
+  const PROVINCES = META['2025_province_codes'] || [];
+  const ALL_ETHNIC = [...new Set([
+    ...COMMUNE_RECORDS.flatMap(f => [
+      ...(f.properties?.ethnographic_groups_display || []),
+      ...(f.properties?.commune_explicit_groups || []),
+      ...(f.properties?.village_verified_groups_in_commune || [])
+    ]),
+    ...CATALOGUE.map(f => f.properties.ethnic_group),
+    ...CULTURE.map(f => f.properties.ethnic_group)
+  ].filter(Boolean))].sort((a,b) => a.localeCompare(b,'vi'));
+  const PALETTE = ['#d97706','#27b6b6','#8e7ddb','#e67688','#89b93b','#e3b04b','#608eda',
+    '#cc79c6','#62b388','#c68f60','#b1cf49','#f0804b','#6ba5e1','#e5597d','#a2a8f0',
+    '#75b7a4','#d29a91','#a19a45','#a6dfb4','#a987c6','#77c9cf','#b08a58','#d97a5b',
+    '#6e9cbe','#d6b66d','#8fcad5','#a5ab5a','#ef89ae','#c4a5e0','#819f84'];
+  const normalizeEthnic = n => String(n || '').normalize('NFC').trim().toLocaleLowerCase('vi')
+    .replace(/^h['’]?mông$/, 'mông').replace(/^gia rai$/, 'gia rai')
+    .replace(/^jarai$/, 'gia rai').replace(/^êđê$/, 'ê đê');
+  const canonical = new Map();
+  ALL_ETHNIC.forEach(x => { if(!canonical.has(normalizeEthnic(x)))canonical.set(normalizeEthnic(x),x); });
+  const GROUPS = [...canonical.keys()].sort((a,b) => a.localeCompare(b,'vi'));
+  const DEFAULT_COLORS = new Map(GROUPS.map((x,i)=>[x,PALETTE[i % PALETTE.length]]));
+  const COLORS = new Map(DEFAULT_COLORS);
+  // Restore old palette/opacity, but migrate legacy mix/first modes to stripes.
+  const COLOR_SETTINGS_KEY = 'truongson-color-settings-v2';
+  const colorSettings = {mode:'stripes',opacity:47,stripeWidth:10};
+  try {
+    const modern=localStorage.getItem(COLOR_SETTINGS_KEY);
+    const saved=JSON.parse(modern||localStorage.getItem('truongson-color-settings-v1')||'{}');
+    if(saved.colors && typeof saved.colors==='object')for(const [key,value] of Object.entries(saved.colors)){
+      if(COLORS.has(key) && /^#[0-9a-f]{6}$/i.test(value))COLORS.set(key,value);
+    }
+    if(modern && ['stripes','first'].includes(saved.mode))colorSettings.mode=saved.mode;
+    if(Number.isFinite(saved.opacity))colorSettings.opacity=Math.max(0,Math.min(100,saved.opacity));
+    if(Number.isFinite(saved.stripeWidth))colorSettings.stripeWidth=Math.max(3,Math.min(24,saved.stripeWidth));
+  } catch(err) { console.info('Настройки цвета недоступны:',err); }
+  function persistColorSettings(){
+    try {localStorage.setItem(COLOR_SETTINGS_KEY,JSON.stringify({
+      colors:Object.fromEntries(COLORS),mode:colorSettings.mode,opacity:colorSettings.opacity,stripeWidth:colorSettings.stripeWidth
+    }));}catch(err){console.info('Не удалось сохранить цвета:',err);}
+  }
+  const el = id => document.getElementById(id);
+  const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const unique = xs => [...new Set(xs.filter(Boolean))];
+  const groupColor = name => COLORS.get(normalizeEthnic(name)) || '#94a3b8';
+  const prettyGroups = xs => (xs || []).map(n => `<span class="atlas-pill"><i class="atlas-dot" style="background:${groupColor(n)}"></i>${esc(n)}</span>`).join('');
+  const urlLink = (url, caption) => /^https?:\/\//i.test(String(url||'')) ? `<a href="${esc(url)}" target="_blank" rel="noopener noreferrer">${esc(caption || url)}</a>` : '';
+  const layerDefaults = {
+    communes: {label:'Коммуны 2025 · этнический состав',color:'#0ea5e9',defaultOn:true},
+    commune_points: {label:'Этнические круги · состав коммун',color:'#94a3b8',defaultOn:false},
+    culture: {label:'Традиции и общинные дома',color:'#f59e0b',defaultOn:false},
+    osm_settlements: {label:'Поселения OpenStreetMap',color:'#a3e635',defaultOn:false},
+    historical_places: {label:'Исторические поселения',color:'#f472b6',defaultOn:false},
+    study_region: {label:'Рабочий контур Чыонгшона',color:'#fde68a',defaultOn:false}
+  };
+  const map = L.map('map',{center:[15.1,107.3],zoom:7,zoomControl:false,preferCanvas:false});
+  L.control.zoom({position:'bottomright'}).addTo(map);
+  // Leaflet's SVG renderer allows vector polygons to use repeated, screen-space
+  // SVG patterns. Canvas fillColor does not support url(#pattern) paints.
+  const communeRenderer = L.svg({padding:0.5}).addTo(map);
+  const SVG_NS='http://www.w3.org/2000/svg';
+  const stripeDefs=document.createElementNS(SVG_NS,'defs');
+  communeRenderer._container.insertBefore(stripeDefs,communeRenderer._container.firstChild);
+  const stripePatterns=new Map();
+  let stripeSerial=0;
+  function updateStripePattern(entry){
+    const width=colorSettings.stripeWidth;
+    entry.node.setAttribute('width',String(entry.keys.length*width));
+    entry.node.setAttribute('height',String(width));
+    entry.rects.forEach((rect,i)=>{
+      rect.setAttribute('x',String(i*width));
+      rect.setAttribute('width',String(width));
+      rect.setAttribute('height',String(width));
+      rect.setAttribute('fill',groupColor(entry.keys[i]));
+    });
+  }
+  function stripedFill(ethnicGroups){
+    const keys=unique(ethnicGroups.map(normalizeEthnic));
+    if(!keys.length)return '#6b7280';
+    if(keys.length===1)return groupColor(keys[0]);
+    const hash=JSON.stringify(keys);
+    let entry=stripePatterns.get(hash);
+    if(!entry){
+      const node=document.createElementNS(SVG_NS,'pattern');
+      const id='atlas-ethnic-stripe-'+(++stripeSerial);
+      node.setAttribute('id',id);
+      node.setAttribute('patternUnits','userSpaceOnUse');
+      node.setAttribute('patternTransform','rotate(45)');
+      entry={keys,node,rects:[],id};
+      keys.forEach(()=>{
+        const rect=document.createElementNS(SVG_NS,'rect');
+        node.appendChild(rect);entry.rects.push(rect);
+      });
+      stripeDefs.appendChild(node);
+      stripePatterns.set(hash,entry);
+    }
+    updateStripePattern(entry);
+    return `url(#${entry.id})`;
+  }
+  function refreshStripePatterns(){for(const entry of stripePatterns.values())updateStripePattern(entry);}
+  const base = {
+    'Спутник (Esri World Imagery)': L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:18,attribution:'Tiles © Esri'}),
+    'Светлая (CartoDB Positron)': L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{maxZoom:19,subdomains:'abcd',attribution:'© OpenStreetMap © CARTO'}),
+    'Топографическая (OpenTopoMap)': L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',{maxZoom:17,attribution:'© OpenStreetMap / SRTM / OpenTopoMap'}),
+    'Тёмная (CartoDB)': L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{maxZoom:19,subdomains:'abcd',attribution:'© OpenStreetMap © CARTO'})
+  };
+  base['Спутник (Esri World Imagery)'].addTo(map);
+  L.control.layers(base,null,{position:'topright',collapsed:false}).addTo(map);
+  const state = {ethnic:'',evidence:'all',culture:'',labels:false,query:'',
+    groups:{},wards:[],wardMap:new Map(),zonePoly:null,loading:false,hasGeometry:false,
+    requestFail:[],enabled:{communes:true,culture:false,osm_settlements:false,historical_places:false,study_region:false,commune_points:false},
+    manualHide:new Set(),styleRevision:0};
+  // More exact modern commune data takes precedence; GREG is shown separately and never presented as current.
+  function groupsFor(p){
+    if(!p) return [];
+    if(p.modern_minority_presence_no_specific_group) return [];
+    if((p.layer || '')==='communes_unconfirmed') return p.ethnographic_groups_display || [];
+    const documented=[...new Set([...(p.commune_explicit_groups||[]),...(p.village_verified_groups_in_commune||[])])];
+    return documented.length ? documented : (p.ethnographic_groups_display||[]);
+  }
+  function levelFor(p){
+    if(!p || p._noEvidence) return 'none';
+    if(p.layer==='communes_unconfirmed' && p.modern_minority_presence_no_specific_group) return 'minority_unknown';
+    if(p.layer==='communes_unconfirmed') return 'historical';
+    if(p.layer==='communes_villages') return 'village';
+    return 'commune';
+  }
+  function percentages(p, groups) {
+    const data=(p?.modern_evidence_v1_8 || []).filter(e =>
+      e.groups?.length===1 && /^(?:ethnic_group_share_population|group_share_population)$/.test(e.metric||'') &&
+      Number.isFinite(Number(e.percent)) && Number(e.percent)>=0);
+    const by = new Map(data.map(e => [normalizeEthnic(e.groups[0]),Number(e.percent)]));
+    if (groups.length && groups.every(g=>by.has(normalizeEthnic(g))))return groups.map(g=>by.get(normalizeEthnic(g)));
+    return null;
+  }
+  function dashFor(level){return level==='historical'?'1 7':level==='minority_unknown'?'4 4':level==='village'?'6 4':level==='none'?'3 6':null;}
+  function styleFor(feature){
+    const p=feature.properties?._record || {},gr=groupsFor(p),lv=levelFor(p);
+    const active=matches(feature);
+    const col=colorSettings.mode==='first'&&gr.length?groupColor(gr[0]):stripedFill(gr);
+    return {color:active?(lv==='none'?'#64748b':'#f8fafc'):'#475569',weight:lv==='commune'?1.4:1.2,
+      dashArray:dashFor(lv),fillColor:col,fillOpacity:active?Math.min(1,(lv==='historical'?.22:lv==='none'?.12:.47)*colorSettings.opacity/47):0,
+      opacity:active?.9:0};
+  }
+  function ethnicMatch(groups){return !state.ethnic || groups.some(g=>normalizeEthnic(g)===state.ethnic);}
+  function cultureFor(code){return CULTURE_BY_CODE.get(String(code))||[];}
+  function culturalMatch(records){return records.some(f=>(!state.ethnic||normalizeEthnic(f.properties.ethnic_group)===state.ethnic)&&
+    (!state.culture||statusMatches(f.properties.status)));
+  }
+  function statusMatches(status){if(!state.culture)return true;const v=status||'';
+    if(state.culture==='restored')return v==='restored'||v==='revived_reconstructed';
+    return v===state.culture;}
+  function matches(feature){
+    const p=feature.properties?._record || {}, gr=groupsFor(p);
+    if(state.evidence!=='all'&&levelFor(p)!==state.evidence)return false;
+    return ethnicMatch(gr) || (state.ethnic && culturalMatch(cultureFor(feature.properties?._code)));
+  }
+  function safeName(p) {return p?.name||p?.name_local||'Без названия';}
+  function sourcesHTML(sources) {return (sources||[]).map(s=>`<div class="ev"><div>${esc(s.note || s.evidence_note || s.relation || s.source_scope || 'Свидетельство')}</div><div class="atlas-small-line">${esc(s.source_date||s.year||'')} · ${esc(s.scope||'')}</div>${urlLink(s.source_url,'Источник ↗')}</div>`).join('');}
+  function popupCommune(code, data){
+    const record=BY_CODE.get(String(code)), p=record?.properties||{_noEvidence:true,name:data?.properties?.name||`Коммуна ${code}`};
+    const e=unique([...(p.commune_ethnicity_sources||[]),...(p.modern_evidence_v1_8||[])]);
+    const ethn=groupsFor(p), lv=levelFor(p), lst=cultureFor(code);
+    const ll={none:'Нет этнических данных',commune:'Современное подтверждение на уровне коммуны',village:'Локальное / деревенское подтверждение',historical:'Только историческая гипотеза GREG 1964',minority_unknown:'Есть современные меньшинства, но этногруппа не определена'};
+    const legend=lv==='historical'?'<p class="atlas-small-line">Это историческое распределение, не проверенная численность или состав населения на 2026 год.</p>':'';
+    const shares=percentages(p,ethn);
+    const metrics=shares?`<p>Доли опубликованы: ${ethn.map((g,i)=>`${esc(g)} ${shares[i]}%`).join(' · ')}</p>`:'<p class="atlas-small-line">Доли неизвестны: цвета не означают численность или большинство.</p>';
+    const cultureList=lst.map(f=>{const c=f.properties;return `<div class="ev"><b>${esc(c.attribute_id||c.category)}</b><span class="atlas-status ${esc(c.status)}">${esc(c.status_ru||c.status)}</span><p>${esc(c.ethnic_group||'')} · ${esc(c.village||'деревня не указана')} · ${esc(c.source_date||'')}</p><p>${esc(c.evidence_note||'')}</p>${urlLink(c.source_url,'Источник ↗')}<div class="atlas-small-line">Точное место не установлено: привязка только к коммуне.</div></div>`;}).join('');
+    return `<div class="atlas-popup"><h3>${esc(safeName(p))}</h3><div class="atlas-small-line">${esc(p.province_name_2025||data?.properties?.provinceName||'')} · код 2025: ${esc(code)}</div>
+      <h4>Народности · ${esc(ll[lv])}</h4>${prettyGroups(ethn)||'<div class="atlas-small-line">Нет подтверждённой этногруппы</div>'}${legend}${metrics}
+      <h4>Источники этнических данных (${e.length})</h4><div class="max-h-40 overflow-y-auto custom-scroll">${sourcesHTML(e)||'<p class="atlas-small-line">Современных подтверждений пока нет.</p>'}</div>
+      <h4>Традиции, общинные дома и обряды (${lst.length})</h4><div class="max-h-48 overflow-y-auto custom-scroll">${cultureList||'<p class="atlas-small-line">Нет локальных свидетельств. Это НЕ означает отсутствие традиции.</p>'}</div>
+      <div class="atlas-small-line">Геометрия: GeoVN 2025. ${urlLink(`https://github.com/truongdinh018/GeoVN/tree/main/data/wards`,'Источник границ ↗')}</div>
+    </div>`;
+  }
+  function culturalPopup(code){
+    const record=BY_CODE.get(String(code)), cs=cultureFor(code).filter(f=>!state.ethnic||normalizeEthnic(f.properties.ethnic_group)===state.ethnic);
+    return `<div class="atlas-popup"><h3>${esc(record?.properties?.name||`Коммуна ${code}`)}</h3><p>Культурные свидетельства · ${cs.length}</p>`+cs.map(f=>{const p=f.properties;return `<div class="ev"><h4>${esc(p.attribute_id||p.category)}</h4><span class="atlas-status ${esc(p.status)}">${esc(p.status_ru||p.status)}</span><p>${esc(p.ethnic_group)} · ${esc(p.village||'деревня не указана')}</p><p>${esc(p.evidence_note||'')}</p><p class="atlas-small-line">${esc(p.source_date||'')} · ${esc(p.source_scope||'')} · ${esc(p.confidence||'')}</p>${urlLink(p.source_url,'Проверить источник ↗')}</div>`}).join('')+'<p class="atlas-small-line">Маркер в центре коммуны: НЕ точная координата постройки или обряда.</p></div>';
+  }
+  const groups={communes:L.layerGroup(),culture:L.layerGroup(),osm_settlements:L.layerGroup(),historical_places:L.layerGroup(),study_region:L.layerGroup(),commune_points:L.layerGroup()};
+  state.groups=groups;
+  for(const [key,g] of Object.entries(groups))if(state.enabled[key])g.addTo(map);
+  const wardLayers=new Map(), cultureLayers=new Map(), osmLayers=[], legacyLayers=[], fallbackLayers=[];
+  const boundSets={};
+  const provinceStatuses={};
+  const maskL=L.geoJSON({type:'Feature',geometry:RAW.mask,properties:{}},{style:{color:'#fde68a',weight:2,dashArray:'8 5',fillOpacity:0,opacity:.8}}).addTo(groups.study_region);
+  // Fit the working study region: independent of loaded features, avoiding world-scale basemap jump.
+  if(maskL.getBounds().isValid())map.fitBounds(maskL.getBounds(),{padding:[15,20],maxZoom:8});
+
+  function fillEthnicChoices(){
+    el('ethnicFilter').innerHTML='<option value="">Все народности</option>'+GROUPS.map(k=>`<option value="${esc(k)}">${esc(canonical.get(k))}</option>`).join('');
+    refreshLegend();
+  }
+  function refreshLegend(){
+    const shown=state.ethnic?[state.ethnic]:GROUPS.filter(k=>k!=='kinh');
+    el('ethnicLegend').innerHTML=shown.slice(0,32).map(k=>`<span style="font-size:10px;color:#cbd5e1"><i class="atlas-dot" style="background:${COLORS.get(k)}"></i>${esc(canonical.get(k))}</span>`).join('')+
+      (shown.length>32?`<span class="atlas-small-line">+${shown.length-32}</span>`:'');
+  }
+  const geometricFeatures=[];
+  function coordInRing(coord,ring){
+    let yes=false;const x=coord[0],y=coord[1];
+    for(let i=0,j=ring.length-1;i<ring.length;j=i++){
+      const ax=ring[i][0],ay=ring[i][1],bx=ring[j][0],by=ring[j][1];
+      if((ay>y)!==(by>y) && x < (bx-ax)*(y-ay)/(by-ay)+ax)yes=!yes;
+    }
+    return yes;
+  }
+  function inPolygon(coord,poly){if(!coordInRing(coord,poly[0]))return false;
+    for(const hole of poly.slice(1))if(coordInRing(coord,hole))return false;return true;}
+  function inMask(coord){const geom=RAW.mask;if(!geom)return true;
+    return geom.type==='Polygon'?inPolygon(coord,geom.coordinates):geom.coordinates.some(poly=>inPolygon(coord,poly));}
+  function geometryCoords(geom){
+    if(geom.type==='Polygon')return geom.coordinates.flat(1);
+    if(geom.type==='MultiPolygon')return geom.coordinates.flat(2);
+    return [];
+  }
+  // Use *actual polygon* representative coordinate; if centroids fall outside crescent shapes, vertex fallback catches fringe communes.
+  function overlapsStudyArea(f,code){
+    if(BY_CODE.has(String(code)))return true;
+    const pts=geometryCoords(f.geometry||{});if(!pts.length)return false;
+    const step=Math.max(1,Math.floor(pts.length/45));for(let i=0;i<pts.length;i+=step)if(inMask(pts[i]))return true;
+    let sumX=0,sumY=0;for(let i=0;i<pts.length;i+=step){sumX+=pts[i][0];sumY+=pts[i][1];}
+    const n=Math.ceil(pts.length/step);return inMask([sumX/n,sumY/n]);
+  }
+  let markerClipSerial=0;
+  function markerCircle(groups, p,dim=24){
+    const gr=unique(groups.map(normalizeEthnic));
+    const shown=colorSettings.mode==='first'?gr.slice(0,1):gr;
+    const colors=shown.map(groupColor),size=dim,cx=size/2,cy=size/2,r=size*.38;
+    let paths='';
+    if(!colors.length){paths=`<circle cx="${cx}" cy="${cy}" r="${r}" fill="#64748b"/>`;}
+    else if(colors.length===1){paths=`<circle cx="${cx}" cy="${cy}" r="${r}" fill="${colors[0]}"/>`;}
+    else {
+      // Diagonal equal-width stripes clipped to the circle, like the polygons.
+      const clipId='atlas-circle-clip-'+(++markerClipSerial);
+      const extent=2*r*Math.SQRT2, stripe=extent/colors.length, top=cy-extent/2;
+      paths=`<defs><clipPath id="${clipId}"><circle cx="${cx}" cy="${cy}" r="${r}"/></clipPath></defs>`;
+      paths+=`<g clip-path="url(#${clipId})" transform="rotate(45 ${cx} ${cy})">`;
+      for(let i=0;i<colors.length;i++){
+        paths+=`<rect x="${-size}" y="${(top+i*stripe).toFixed(3)}" width="${size*3}" height="${(stripe+0.03).toFixed(3)}" fill="${colors[i]}"/>`;
+      }
+      paths+='</g>';
+    }
+    const dash=levelFor(p)==='historical'?'stroke-dasharray="2 2"':'';
+    return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">${paths}<circle cx="${cx}" cy="${cy}" r="${r}" stroke="#f8fafc" stroke-width="2" fill="none" ${dash}/></svg>`;
+  }
+  function addFallback(){
+    for(const f of COMMUNE_RECORDS){
+      if(f.geometry?.type!=='Point')continue;
+      const p=f.properties,code=String(p.commune_code_2025),coords=f.geometry.coordinates;
+      const marker=L.marker([coords[1],coords[0]],{icon:L.divIcon({html:markerCircle(groupsFor(p),p,24),className:'atlas-ethnic-pie',iconSize:[24,24],iconAnchor:[12,12]})});
+      marker.bindPopup(()=>popupCommune(code));marker._ethnicCode=code;marker.addTo(groups.commune_points);
+      fallbackLayers.push(marker);
+    }
+    // Keep commune point overlay disabled at first launch; the polygon layer is the only default.
+  }
+  function makeCultureIndex(){
+    const byCode=CULTURE_BY_CODE;
+    for(const [code,evidence] of byCode){
+      const info=BY_CODE.get(code);if(!info||info.geometry?.type!=='Point')continue;
+      const coord=info.geometry.coordinates;
+      const stopped=evidence.some(f=>f.properties.status==='discontinued'),declining=evidence.some(f=>f.properties.status==='declining');
+      const html=`<div class="atlas-culture-bubble ${stopped?'loss':declining?'decline':''}">${evidence.length}</div>`;
+      const marker=L.marker([coord[1],coord[0]],{icon:L.divIcon({html,className:'atlas-culture-marker',iconSize:[26,26],iconAnchor:[13,13]})});
+      marker.bindPopup(()=>culturalPopup(code));marker._ethnicCode=code;cultureLayers.set(code,marker);marker.addTo(groups.culture);
+    }
+  }
+  function addOsm(){
+    for(const f of SETTLEMENTS){if(f.geometry?.type!=='Point')continue;const p=f.properties,coord=f.geometry.coordinates;
+      const color=p.ethnicity_verified&&p.ethnic_group?groupColor(p.ethnic_group):'#a3e635';
+      const marker=L.circleMarker([coord[1],coord[0]],{radius:p.place==='town'?5:3,weight:1,color:'#0f172a',fillColor:color,fillOpacity:.9});
+      marker.bindPopup(`<div class="atlas-popup"><h3>${esc(p.name)}</h3><p>${esc(p.place||'')}</p><p>${p.ethnicity_verified?'Этнос подтверждён':'Этнос поселения не подтверждён'}: ${esc(p.ethnic_group||'—')}</p>${urlLink(p.ethnicity_source,'Источник этнических данных')}${urlLink(p.osm_url,'OpenStreetMap ↗')}</div>`);
+      marker._ethnic=p.ethnicity_verified?normalizeEthnic(p.ethnic_group):'';marker._ethnicColorSource=p.ethnicity_verified?p.ethnic_group:null;marker.addTo(groups.osm_settlements);osmLayers.push(marker);
+    }
+    for(const f of LEGACY){if(f.geometry?.type!=='Point')continue;const p=f.properties,coord=f.geometry.coordinates;
+      const layer=L.circleMarker([coord[1],coord[0]],{radius:4,color:'#f472b6',fillColor:'#f472b6',fillOpacity:.7,weight:1});
+      const src=Array.isArray(p.source_urls)?p.source_urls:[p.source_urls];
+      layer.bindPopup(`<div class="atlas-popup"><h3>${esc(p.name)}</h3><p>${esc(p.description||'')}</p>${src.filter(Boolean).map(x=>urlLink(x,'Источник ↗')).join(' ')}</div>`);
+      layer._ethnics=(p.ethnic_groups||[]).map(normalizeEthnic);layer.addTo(groups.historical_places);legacyLayers.push(layer);
+    }
+  }
+  function parseWardFeature(f,provinceCode){
+    const props=f.properties||{}, code=String(props.code||f.id||'');
+    return {type:'Feature',id:'ward_'+code,properties:{
+      code,provinceCode:String(provinceCode),name:props.name||props.fullName||`Коммуна ${code}`,
+      nameEn:props.nameEn||'',provinceName:BY_CODE.get(code)?.properties?.province_name_2025||'',
+      areaKm2:props.areaKm2,fullName:props.fullName,geovnId:props.gisServerId,
+      source_url:`https://raw.githubusercontent.com/truongdinh018/GeoVN/main/data/wards/${provinceCode}.geojson`,
+      _code:code,_record:BY_CODE.get(code)?.properties||null,layer:'communes_2025'},geometry:f.geometry};
+  }
+  function drawWards(wards){
+    let added=0;
+    for(const f of wards){const code=String(f.properties._code);if(wardLayers.has(code))continue;
+      if(!overlapsStudyArea(f,code))continue;
+      const geo=L.geoJSON(f,{renderer:communeRenderer,style:styleFor,onEachFeature:(feat,layer)=>{
+        layer.bindPopup(()=>popupCommune(code,feat),{maxWidth:400});
+        layer.bindTooltip(feat.properties.name,{sticky:false,direction:'center',permanent:false,className:'atlas-permanent-label'});
+        layer.on('mouseover',()=>{if(state.enabled.communes)layer.setStyle({weight:3})});
+        layer.on('mouseout',()=>{layer.setStyle(styleFor(f))});
+      }});
+      geo.addTo(groups.communes);wardLayers.set(code,{geo,feature:f});geometricFeatures.push(f);added++;
+    }
+    if(added){state.hasGeometry=true;}
+    renderAll();
+    return added;
+  }
+  async function fetchProvince(code) {
+    const sources=[`https://raw.githubusercontent.com/truongdinh018/GeoVN/main/data/wards/${code}.geojson`,
+      `https://cdn.jsdelivr.net/gh/truongdinh018/GeoVN@main/data/wards/${code}.geojson`];
+    let last;
+    for(const url of sources){
+      try{const control=new AbortController();const timer=setTimeout(()=>control.abort(),30000);
+        const response=await fetch(url,{signal:control.signal});clearTimeout(timer);
+        if(!response.ok)throw Error(`HTTP ${response.status}`);
+        const data=await response.json();if(data.type!=='FeatureCollection'||!Array.isArray(data.features))throw Error('Не FeatureCollection');
+        return data.features.map(f=>parseWardFeature(f,code));
+      }catch(e){last=e;}
+    }
+    throw Error(`Провинция ${code}: ${last?.message||'неизвестная ошибка'}`);
+  }
+  async function loadGeometry(force=false){
+    if(state.loading)return;
+    state.loading=true;el('retryGeoVN').disabled=true;const wanted=PROVINCES.filter(code=>force||!boundSets[code]);
+    if(!wanted.length){state.loading=false;el('retryGeoVN').disabled=false;return;}
+    let done=0;const failures=[];
+    // Two concurrent GitHub requests avoids rate spikes; all geometry remains in-memory for GeoJSON export.
+    for(let i=0;i<wanted.length;i+=2){
+      const batch=wanted.slice(i,i+2),results=await Promise.allSettled(batch.map(fetchProvince));
+      results.forEach((r,j)=>{const code=batch[j];
+        if(r.status==='fulfilled'){boundSets[code]=r.value;done+=drawWards(r.value);provinceStatuses[code]='ok';}
+        else{failures.push(code);provinceStatuses[code]=String(r.reason);}
+      });
+      const loaded=Object.keys(boundSets).length;
+      el('boundaryStatus').textContent=`Границы GeoVN: ${loaded}/${PROVINCES.length} провинций · ${wardLayers.size} коммун в маске · ошибок ${failures.length}.`;
+    }
+    state.loading=false;el('retryGeoVN').disabled=false;state.requestFail=failures;
+    if(failures.length)el('boundaryStatus').textContent+=` Не загружены: ${failures.join(', ')}. Можно повторить или загрузить GeoJSON вручную.`;
+    else el('boundaryStatus').textContent+=` Все провинции загружены. `;
+    renderAll();
+  }
+  function renderLayerList(){
+    const parts=Object.entries(layerDefaults).map(([key,meta])=>{
+      const counts={communes:wardLayers.size,commune_points:groups.commune_points.getLayers().length,culture:groups.culture.getLayers().length,osm_settlements:groups.osm_settlements.getLayers().length,historical_places:groups.historical_places.getLayers().length,study_region:1};
+      const vis=!!state.enabled[key];
+      return `<div class="rounded-lg bg-slate-800/50 border border-slate-700/50 flex items-center gap-2 px-2.5 py-2">
+        <input class="atlas-layer-check accent-amber-500" type="checkbox" id="layer-${key}" data-layer="${key}" ${vis?'checked':''}>
+        <label for="layer-${key}" class="flex-1 text-xs text-slate-100 cursor-pointer">${esc(meta.label)}</label>
+        <span class="text-[10px] text-slate-400">${counts[key]||0}</span></div>`;
+    });
+    el('layersList').innerHTML=parts.join('');
+    el('layersList').querySelectorAll('.atlas-layer-check').forEach(cb=>cb.addEventListener('change',e=>{
+      const key=e.target.dataset.layer;state.enabled[key]=e.target.checked;if(state.enabled[key])groups[key].addTo(map);else map.removeLayer(groups[key]);
+      el('visibleCount').textContent=String(visibleCount());
+    }));
+    el('totalGeoCount').textContent=String(wardLayers.size+osmLayers.length+cultureLayers.size+legacyLayers.length+1);
+    el('visibleCount').textContent=String(visibleCount());
+  }
+  function visibleCount(){return (state.enabled.communes?geometricFeatures.filter(matches).length:0)+(state.enabled.culture?groups.culture.getLayers().length:0)+
+    (state.enabled.osm_settlements?groups.osm_settlements.getLayers().length:0)+(state.enabled.historical_places?groups.historical_places.getLayers().length:0)+
+    (state.enabled.study_region?1:0)+(state.enabled.commune_points?groups.commune_points.getLayers().length:0);}
+  function renderProfiles(){const matches=CATALOGUE.filter(f=>!state.ethnic||normalizeEthnic(f.properties.ethnic_group)===state.ethnic);
+    el('nullGeoCount').textContent=String(matches.length+CULTURE.filter(f=>!f.properties.commune_code_2025).length);
+    const area=el('nullFeaturesList');area.innerHTML='';
+    for(const f of matches){const p=f.properties,attributes=p.attributes||{};
+      const div=document.createElement('div');div.className='atlas-listitem';div.textContent=`${p.ethnic_group} — ${p.name||''} · этнографический профиль`;
+      div.addEventListener('click',()=>{
+        const sources=(p.external_group_sources||[]).map(url=>urlLink(url,'Источник ↗')).join(' · ');
+        el('nullDetailContent').innerHTML=`<div class="atlas-popup"><h3>${esc(p.name||p.ethnic_group)} · ${esc(p.ethnic_group)}</h3>
+          <p>${esc(attributes.architecture||'')}</p><p>${esc(attributes.music_and_gongs||'')}</p>
+          <h4>Обряды</h4>${(attributes.rituals_and_beliefs||[]).map(s=>`<p>${esc(s)}</p>`).join('')}
+          <p class="atlas-small-line">Типовой атрибут народа, НЕ локальное подтверждение для каждой коммуны.</p>${sources}</div>`;
+        openModal(el('nullDetailModal'));
+      });area.appendChild(div);
+    }
+    for(const f of CULTURE.filter(x=>!x.properties?.commune_code_2025 && (!state.ethnic||normalizeEthnic(x.properties.ethnic_group)===state.ethnic))){
+      const p=f.properties;const div=document.createElement('div');div.className='atlas-listitem';
+      div.textContent=`${p.ethnic_group} · ${p.attribute_id} · ${p.status_ru||p.status} (без однозначной коммуны)`;
+      div.addEventListener('click',()=>{
+        el('nullDetailContent').innerHTML=`<div class="atlas-popup"><h3>${esc(p.attribute_id||'Культурное свидетельство')}</h3><p>${esc(p.ethnic_group||'')} · ${esc(p.village||'')}</p><span class="atlas-status ${esc(p.status)}">${esc(p.status_ru||p.status)}</span><p>${esc(p.evidence_note||'')}</p><p class="atlas-small-line">Невозможно однозначно привязать к коммуне 2025; геометрия не выдумана.</p>${urlLink(p.source_url,'Источник ↗')}</div>`;
+        openModal(el('nullDetailModal'));
+      });el('nullFeaturesList').appendChild(div);
+    }
+  }
+  function renderAll(){
+    for(const {geo,feature} of wardLayers.values()){
+      const ok=matches(feature);
+      geo.eachLayer(layer=>{
+        layer.setStyle(styleFor(feature));
+        if(ok){layer.options.interactive=true;layer.getElement()?.style.setProperty('pointer-events','auto');}
+        else{layer.options.interactive=false;layer.getElement()?.style.setProperty('pointer-events','none');}
+        if(state.labels && ok){layer.unbindTooltip();layer.bindTooltip(feature.properties.name,{permanent:true,direction:'center',className:'atlas-permanent-label'});}
+        else {layer.unbindTooltip();layer.bindTooltip(feature.properties.name,{sticky:true,direction:'center',className:'atlas-permanent-label'});}
+      });
+    }
+    groups.culture.clearLayers();
+    for(const [code,marker] of cultureLayers){const cs=cultureFor(code);if(culturalMatch(cs))marker.addTo(groups.culture);}
+    groups.osm_settlements.clearLayers();for(const m of osmLayers){if(!state.ethnic||m._ethnic===state.ethnic)m.addTo(groups.osm_settlements);}
+    groups.historical_places.clearLayers();for(const m of legacyLayers){if(!state.ethnic||m._ethnics.includes(state.ethnic))m.addTo(groups.historical_places);}
+    groups.commune_points.clearLayers();for(const m of fallbackLayers){const p=BY_CODE.get(m._ethnicCode)?.properties;if(!state.ethnic||ethnicMatch(groupsFor(p))||culturalMatch(cultureFor(m._ethnicCode)))m.addTo(groups.commune_points);}
+    renderLayerList();renderProfiles();refreshLegend();
+  }
+  function download(name,text,mime){const blob=new Blob([text],{type:mime||'application/json;charset=utf-8'}),u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),5000);}
+  function exportPolygons(){
+    if(!geometricFeatures.length){el('boundaryStatus').textContent='Границы коммун ещё не загружены. Нужен интернет или ручная загрузка GeoVN.';return;}
+    const features=geometricFeatures.map(f=>{
+      const { _record, ...baseProps }=f.properties;
+      const orig=BY_CODE.get(f.properties._code)?.properties;
+      return {type:'Feature',id:f.id,geometry:f.geometry,properties:{...baseProps,
+        layer:'communes_2025',ethnic_evidence:orig||null,ethnic_groups:orig?groupsFor(orig):[],ethnicity_evidence_level:levelFor(orig),
+        cultural_evidence:cultureFor(f.properties._code).map(x=>x.properties),
+        cultural_source_links:unique(cultureFor(f.properties._code).map(x=>x.properties.source_url))}};
+    });
+    download('truong_son_communes_2025_polygons_enriched.geojson',JSON.stringify({type:'FeatureCollection',metadata:{
+      title:'Труонгшон · административные полигоны 2025 с этническими свидетельствами и культурой',
+      source:'GeoVN (2025) + архив этнографических и культурных свидетельств',
+      geometry_notes:META.geometry_notes,covered_provinces:Object.keys(boundSets),failed_provinces:state.requestFail,
+      filtered_to_study_region:true,not_population_proportions:true},features}),'application/geo+json;charset=utf-8');
+  }
+  async function manuallyLoadGeo(file){const text=await file.text(),data=JSON.parse(text);
+    if(data.type!=='FeatureCollection')throw Error('Ожидается FeatureCollection');
+    const parsed=(data.features||[]).filter(f=>f.geometry&&['Polygon','MultiPolygon'].includes(f.geometry.type))
+      .map(f=>{const p=f.properties||{};const rawCode=String(p.code||p.commune_code_2025||p._code||f.id||'').replace(/^ward_/,'');
+        return parseWardFeature({geometry:f.geometry,id:rawCode,properties:{...p,code:rawCode}},p.provinceCode||p.province_code_2025||'manual');});
+    const n=drawWards(parsed);if(n)el('boundaryStatus').textContent=`Ручной импорт: добавлено ${n} границ; всего ${wardLayers.size}.`;
+    else throw Error('Не найдены новые границы в маске; проверьте коды и геометрию');
+  }
+  function openModal(modal){modal.classList.remove('hidden');modal.classList.add('flex');}
+  function closeModal(modal){modal.classList.add('hidden');modal.classList.remove('flex');}
+  function search(){
+    const q=el('searchInput').value.trim().toLocaleLowerCase('vi'),out=el('searchResults');out.innerHTML='';
+    if(!q){out.classList.add('hidden');return;}
+    const joined=[...BY_CODE.values()].filter(f=>(f.properties.name||'').toLocaleLowerCase('vi').includes(q)||
+      (f.properties.province_name_2025||'').toLocaleLowerCase('vi').includes(q)).slice(0,40);
+    const unmatched=geometricFeatures.filter(f=>!BY_CODE.has(f.properties._code)&&f.properties.name.toLocaleLowerCase('vi').includes(q)).slice(0,15);
+    for(const f of [...joined,...unmatched].slice(0,20)){
+      const p=f.properties,code=String(p.commune_code_2025||p._code),row=document.createElement('div');row.className='atlas-listitem';
+      row.textContent=`${safeName(p)} · ${p.province_name_2025||''} ${code}`;
+      row.addEventListener('click',()=>{
+        const entry=wardLayers.get(code);if(entry)map.fitBounds(entry.geo.getBounds(),{maxZoom:12});
+        else if(f.geometry?.type==='Point')map.setView([f.geometry.coordinates[1],f.geometry.coordinates[0]],11);
+        L.popup({maxWidth:400}).setLatLng(entry?.geo.getBounds().getCenter()||[f.geometry.coordinates[1],f.geometry.coordinates[0]])
+          .setContent(popupCommune(code,entry?.feature)).openOn(map);
+        out.classList.add('hidden');
+      });out.appendChild(row);
+    }
+    if(!out.children.length)out.innerHTML='<div class="atlas-listitem">Не найдено</div>';
+    out.classList.remove('hidden');
+  }
+  function repaintColors(){
+    refreshStripePatterns();
+    for(const m of fallbackLayers){
+      const p=BY_CODE.get(m._ethnicCode)?.properties;
+      if(!p)continue;
+      m.setIcon(L.divIcon({html:markerCircle(groupsFor(p),p,24),className:'atlas-ethnic-pie',iconSize:[24,24],iconAnchor:[12,12]}));
+    }
+    for(const m of osmLayers){
+      m.setStyle({fillColor:m._ethnicColorSource?groupColor(m._ethnicColorSource):'#a3e635'});
+    }
+    renderAll();
+  }
+  function initializeColorEditor(){
+    const selector=el('atlasColorEthnic'),picker=el('atlasEthnicColor');
+    selector.innerHTML=GROUPS.map(k=>`<option value="${esc(k)}">${esc(canonical.get(k))}</option>`).join('');
+    const chosen=GROUPS.includes(state.ethnic)?state.ethnic:GROUPS[0];
+    if(chosen)selector.value=chosen;
+    const sync=()=>{picker.value=COLORS.get(selector.value)||'#94a3b8';};
+    sync();
+    selector.addEventListener('change',sync);
+    picker.addEventListener('input',()=>{
+      if(!COLORS.has(selector.value))return;
+      COLORS.set(selector.value,picker.value);persistColorSettings();repaintColors();
+    });
+    const modeSelector=el('atlasColorMode');
+    const widthRow=el('atlasStripeWidthRow'),widthSlider=el('atlasStripeWidth');
+    const syncStripeMode=()=>{widthRow.classList.toggle('hidden',colorSettings.mode!=='stripes');};
+    modeSelector.value=colorSettings.mode;
+    syncStripeMode();
+    modeSelector.addEventListener('change',e=>{
+      colorSettings.mode=e.target.value;syncStripeMode();persistColorSettings();repaintColors();
+    });
+    widthSlider.value=colorSettings.stripeWidth;
+    el('atlasStripeWidthValue').textContent=`${colorSettings.stripeWidth} px`;
+    widthSlider.addEventListener('input',e=>{
+      colorSettings.stripeWidth=Number(e.target.value);
+      el('atlasStripeWidthValue').textContent=`${colorSettings.stripeWidth} px`;
+      persistColorSettings();repaintColors();
+    });
+    const opacitySlider=el('atlasPolygonOpacity');
+    opacitySlider.value=colorSettings.opacity;
+    el('atlasPolygonOpacityValue').textContent=`${colorSettings.opacity}%`;
+    opacitySlider.addEventListener('input',e=>{
+      colorSettings.opacity=Number(e.target.value);
+      el('atlasPolygonOpacityValue').textContent=`${colorSettings.opacity}%`;
+      persistColorSettings();repaintColors();
+    });
+    el('atlasResetColors').addEventListener('click',()=>{
+      COLORS.clear();for(const [key,value] of DEFAULT_COLORS)COLORS.set(key,value);
+      colorSettings.mode='stripes';colorSettings.opacity=47;colorSettings.stripeWidth=10;
+      modeSelector.value='stripes';widthSlider.value=10;opacitySlider.value=47;
+      el('atlasStripeWidthValue').textContent='10 px';
+      el('atlasPolygonOpacityValue').textContent='47%';
+      syncStripeMode();
+      sync();persistColorSettings();repaintColors();
+    });
+    el('atlasExportColors').addEventListener('click',()=>download('truong_son_colors.json',
+      JSON.stringify({colors:Object.fromEntries(COLORS),mode:colorSettings.mode,opacity:colorSettings.opacity,stripeWidth:colorSettings.stripeWidth},null,2),
+      'application/json;charset=utf-8'));
+  }
+  function initialize(){
+    fillEthnicChoices();initializeColorEditor();
+    el('atlasTitle').textContent=META.title||'Труонгшон: коммуны, этносы и традиции';
+    el('atlasVersionBadge').textContent=`v${META.version||'3.1'} • GeoVN 2025`;
+    el('policyModalSubtitle').textContent='Этническая и культурная география коммун 2025';
+    el('geometryPolicyBanner').textContent=META.geometry_policy||'';
+    el('geometryNotesList').innerHTML=(META.geometry_notes||[]).map(x=>`<li>${esc(x)}</li>`).join('');
+    addFallback();makeCultureIndex();addOsm();renderAll();
+    el('ethnicFilter').addEventListener('change',e=>{state.ethnic=e.target.value;renderAll()});
+    el('evidenceFilter').addEventListener('change',e=>{state.evidence=e.target.value;renderAll()});
+    el('cultureFilter').addEventListener('change',e=>{state.culture=e.target.value;renderAll()});
+    el('toggleLabelsCheckbox').addEventListener('change',e=>{state.labels=e.target.checked;renderAll()});
+    el('downloadEvidence').addEventListener('click',()=>download('truong_son_ethnic_cultural_evidence_2026.geojson',JSON.stringify({
+      type:'FeatureCollection',metadata:META,features:[...COMMUNE_RECORDS,...CULTURE,...CATALOGUE,...SETTLEMENTS,...LEGACY]}),'application/geo+json;charset=utf-8'));
+    el('downloadPolygons').addEventListener('click',exportPolygons);
+    el('retryGeoVN').addEventListener('click',()=>loadGeometry());
+    el('loadWardGeoBtn').addEventListener('click',()=>el('wardGeoFile').click());
+    el('wardGeoFile').addEventListener('change',async e=>{const files=[...e.target.files];try{for(const file of files)await manuallyLoadGeo(file);}catch(err){el('boundaryStatus').textContent='Ошибка импорта: '+err.message;}e.target.value='';});
+    el('enableAllLayers').addEventListener('click',()=>{for(const k of Object.keys(groups)){state.enabled[k]=true;groups[k].addTo(map);}renderLayerList();});
+    el('disableAllLayers').addEventListener('click',()=>{for(const k of Object.keys(groups)){state.enabled[k]=false;map.removeLayer(groups[k]);}renderLayerList();});
+
+    el('searchInput').addEventListener('input',search);el('clearSearchBtn').addEventListener('click',()=>{el('searchInput').value='';el('searchResults').classList.add('hidden')});
+    el('toggleSidebarBtn').addEventListener('click',()=>el('sidebar').classList.toggle('-translate-x-full'));
+    el('resetViewBtn').addEventListener('click',()=>map.fitBounds(maskL.getBounds(),{padding:[15,20],maxZoom:8}));
+    el('infoModalBtn').addEventListener('click',()=>openModal(el('policyModal')));
+    for(const id of ['closePolicyModal','closePolicyModalBtn'])el(id).addEventListener('click',()=>closeModal(el('policyModal')));
+    el('closeNullDetailBtn').addEventListener('click',()=>closeModal(el('nullDetailModal')));
+    for(const id of ['policyModal','nullDetailModal'])el(id).addEventListener('click',e=>{if(e.target===el(id))closeModal(el(id))});
+    loadGeometry();
+  }
+  initialize();
+  return {map};
+}
+
+// Two-file atlas: everything from the old embedded JSON now lives in a standard GeoJSON FeatureCollection.
+const ATLAS_DATA_FILENAME = 'truong_son_atlas_data.geojson';
+const ATLAS_SECTION_BY_LAYER = {
+  communes_official:'communes',communes_published:'communes',
+  communes_villages:'communes',communes_unconfirmed:'communes',
+  cultural_practices:'culture',cultural_sites:'culture',
+  cultural_ethnic_catalogue:'catalogue',osm_settlements:'settlements',
+  legacy_settlements:'historical_places'
+};
+const bootstrapNodes = ['toggleSidebarBtn','sidebar','policyModal','nullDetailModal','map'];
+const originalElements = new Map(bootstrapNodes.map(id=>[id,document.getElementById(id).cloneNode(true)]));
+let activeAtlas = null;
+function fromAtlasGeoJSON(data){
+  if(data?.type !== 'FeatureCollection' || !Array.isArray(data.features)){
+    throw Error('Нужен GeoJSON FeatureCollection с записями атласа.');
+  }
+  const sections={communes:[],culture:[],catalogue:[],settlements:[],historical_places:[]};
+  for(const feature of data.features){
+    const key=ATLAS_SECTION_BY_LAYER[feature?.properties?.layer];
+    if(key)sections[key].push(feature);
+  }
+  if(!sections.communes.length){
+    throw Error('Не найдены коммуны атласа. Для полигонов GeoVN используйте «Загрузить границы вручную».');
+  }
+  return {metadata:data.metadata||{},mask:data.mask||null,...sections};
+}
+function setFileStatus(message,isError=false){
+  const banner=document.getElementById('fileStatusBanner');
+  if(!banner)return;
+  banner.className='mt-2 px-2.5 py-1.5 rounded-lg text-[11px] leading-snug border '+
+    (isError?'text-amber-200 bg-amber-950/50 border-amber-800':'text-emerald-200 bg-emerald-950/40 border-emerald-900');
+  banner.textContent=message;
+}
+function resetAtlasScreen(){
+  if(activeAtlas){activeAtlas.map.remove();activeAtlas=null;}
+  for(const id of bootstrapNodes){
+    const existing=document.getElementById(id);
+    if(existing)existing.replaceWith(originalElements.get(id).cloneNode(true));
+  }
+}
+function bindAtlasFilePicker(){
+  document.getElementById('loadGeojsonBtn').addEventListener('click',()=>
+    document.getElementById('geojsonFileInput').click());
+  document.getElementById('geojsonFileInput').addEventListener('change',async event=>{
+    const file=event.target.files[0];if(!file)return;
+    try{installAtlas(JSON.parse(await file.text()),file.name);}
+    catch(error){setFileStatus('Ошибка импорта: '+error.message,true);}
+    event.target.value='';
+  });
+  document.getElementById('resetDefaultAtlasBtn').addEventListener('click',loadDefaultAtlas);
+}
+function installAtlas(data,name){
+  const parsed=fromAtlasGeoJSON(data);
+  resetAtlasScreen();
+  bindAtlasFilePicker();
+  activeAtlas=startAtlas(parsed);
+  setFileStatus(`${name}: ${parsed.communes.length} коммун · ${parsed.settlements.length} поселений · ${parsed.culture.length} культурных записей`);
+  const reset=document.getElementById('resetDefaultAtlasBtn');
+  reset.classList.toggle('hidden',name===ATLAS_DATA_FILENAME);
+}
+async function loadDefaultAtlas(){
+  setFileStatus('Загрузка '+ATLAS_DATA_FILENAME+'…');
+  try{
+    const response=await fetch('./'+ATLAS_DATA_FILENAME,{cache:'no-store'});
+    if(!response.ok)throw Error('HTTP '+response.status);
+    installAtlas(await response.json(),ATLAS_DATA_FILENAME);
+  }catch(error){
+    const local=location.protocol==='file:';
+    setFileStatus(local?
+      'Автозагрузка из file:// может быть заблокирована браузером. Нажмите «Загрузить атлас (.geojson)» и выберите '+ATLAS_DATA_FILENAME+'.':
